@@ -1,0 +1,164 @@
+let lives;
+let points;
+let paddleWidth;
+let paddleHeight;
+let paddleX;
+let paddleSpeed;
+
+let ballRadius;
+let ballX;
+let ballY;
+let ballSpeedX;
+let ballSpeedY;
+
+let brickWidth;
+let brickHeight;
+let bricks;
+
+
+function setup() {
+  createCanvas(400, 400);
+  lives = 3;
+  points = 0;
+  paddleWidth = 80;
+  paddleHeight = 10;
+  paddleX = width / 2 - paddleWidth / 2;
+  paddleSpeed = 5;
+
+ballRadius = 10;
+  ballX = width / 2;
+  ballY = height / 2;
+  ballSpeedX = -6;//random(-3, 3);
+  ballSpeedY = -6;
+
+  brickWidth = width / 4;
+  brickHeight = 20;
+  bricks = createBricks();
+}
+
+function createBricks() {
+  let bricks = [];
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 4; col++) {
+      let brick = {
+        x: col * brickWidth,
+        y: row * brickHeight + 50,
+        width: brickWidth,
+        height: brickHeight,
+        isDestroyed: false,
+      };
+      bricks.push(brick);
+    }
+  }
+  return bricks;
+}
+
+
+function draw() {
+  background(0);
+
+  
+  if (keyIsDown(LEFT_ARROW) && paddleX > 0) {
+    paddleX -= paddleSpeed;
+  } else if (keyIsDown(RIGHT_ARROW) && paddleX + paddleWidth < width) {
+    paddleX += paddleSpeed;
+  }
+
+  
+  ballX += ballSpeedX;
+  ballY += ballSpeedY;
+
+  if (ballX - ballRadius < 0 || ballX + ballRadius > width) {
+    ballSpeedX *= -1;
+  }
+  if (ballY - ballRadius < 50) {
+    ballSpeedY *= -1;
+  }
+
+
+  if (
+    ballY + ballRadius > height - paddleHeight &&
+    ballX >= paddleX &&
+    ballX <= paddleX + paddleWidth
+  ) {
+    ballSpeedY *= -1;
+  }
+
+
+  for (let i = 0; i < bricks.length; i++) {
+    let brick = bricks[i];
+    if (points === 160) {
+      gameOver1();
+    }
+    if (!brick.isDestroyed) {
+      if (
+        ballY - ballRadius < brick.y + brick.height &&
+        ballY + ballRadius > brick.y &&
+        ballX > brick.x &&
+        ballX < brick.x + brick.width
+      ) {
+        brick.isDestroyed = true;
+        ballSpeedY *= -1;
+        points += 10;
+      }
+    }
+  }
+
+
+  
+  if (ballY + ballRadius > height) {
+    ballX = width / 2;
+    ballY = height / 2;
+    ballSpeedX = random(-3, 3);
+    ballSpeedY = -3;
+    lives--;
+
+    if (lives === 0) {
+      gameOver();
+    }
+  }
+
+  fill(255);
+  rect(paddleX, height - paddleHeight, paddleWidth, paddleHeight);
+
+ 
+  fill(255);
+  ellipse(ballX, ballY, ballRadius * 2);
+
+  for (let i = 0; i < bricks.length; i++) {
+    let brick = bricks[i];
+    if (!brick.isDestroyed) {
+      fill(255);
+      rect(brick.x, brick.y, brick.width, brick.height);
+    }
+  }
+
+
+  fill(255);
+  textSize(20);
+  text(`Lives: ${lives}`, 10, 30);
+  text(`Points: ${points}`, width - 100, 30);
+}
+
+
+function gameOver() {
+  background(0);
+  fill(255);
+  textSize(40);
+  textAlign(CENTER, CENTER);
+  text("Game Over", width / 2, height / 2);
+  noLoop();
+}
+
+function gameOver1() {
+  background(0);
+  fill(255);
+  textSize(40);
+  textAlign(CENTER, CENTER);
+  text("Won", width / 2, height / 2);
+  noLoop();
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
